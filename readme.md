@@ -33,6 +33,10 @@ Finally, to get the optimal path I used [path smoothing][6], which is fairly sim
 
 ![](result.png)
 
+## License
+
+This project is licensed under the [MIT license](LICENSE).
+
 [//]: # (References)
 [1]: <https://weblog.jamisbuck.org/2011/1/27/mhze-generation-growing-tree-algorithm>
 [2]: <https://en.wikipedia.org/wiki/Any-angle_path_planning>
