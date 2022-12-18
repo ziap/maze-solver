@@ -14,11 +14,10 @@ def display(maze, path):
     px = [i[0] for i in path]
     py = [i[1] for i in path]
 
-    fig = plt.figure(figsize=(w / 4, h / 4))
-    fig.clear()
+    plt.figure(figsize=(w / 4, h / 4))
     plt.fill(x, y, facecolor='lightblue', edgecolor='blue', linewidth=1.25)
     plt.plot(px, py, color='red', linewidth=2.0)
-    plt.savefig('result.png')
+    plt.savefig('result.png',bbox_inches='tight', pad_inches=0.1, transparent="True")
 
 
 def random_point(shape):
@@ -37,6 +36,9 @@ if __name__ == "__main__":
     
     start = random_point(maze.shape)
     end = random_point(maze.shape)
+
+    start = (0, 0)
+    end = maze.shape
     
     t = perf_counter()
     path = solve_maze(maze, start, end)
