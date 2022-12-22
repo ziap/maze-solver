@@ -32,17 +32,22 @@ if __name__ == "__main__":
     w = int(ws[0]) if len(ws) else 40
     h = int(hs[0]) if len(hs) else w
 
+    t = perf_counter()
     maze = create_maze(w, h, 0.25)
-    
+
+    duration = (perf_counter() - t) * 1000
+    print(f"Maze created in: {duration}ms")
+
     start = random_point(maze.shape)
     end = random_point(maze.shape)
 
-    start = (0, 0)
-    end = maze.shape
+    start = (0.5, 0.5)
+    end = (maze.shape[0] - 0.5), (maze.shape[1] - 0.5)
     
     t = perf_counter()
     path = solve_maze(maze, start, end)
-    print((perf_counter() - t) * 1000)
+
+    duration = (perf_counter() - t) * 1000
+    print(f"Maze solved in: {duration}ms")
     
     display(maze, path)
-

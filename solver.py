@@ -2,28 +2,59 @@ from numba import njit
 from math import floor, ceil
 
 import numpy as np
-import heapq as hq
 
 from util import bound_check
+
+
+@njit(cache=True)
+def get_tiles(vertex):
+    x, y = vertex
+    tiles = set()
+    for i in (floor(x), ceil(x) - 1):
+        for j in (floor(y), ceil(y) - 1):
+            tiles.add((i, j))
+
+    return tiles
+
+
+@njit(cache=True)
+def get_vertices(tile):
+    x, y = tile
+    return set([
+        (x, y),
+        (x + 1, y),
+        (x, y + 1),
+        (x + 1, y + 1)
+    ])
+
+
+@njit(cache=True)
+def colinear(a, b, c):
+    xa, ya = a
+    xb, yb = b
+    xc, yc = c
+    val = (yb - ya) * (xc - xb) - (xb - xa) * (yc - yb)
+    return val == 0
+
 
 @njit(cache=True)
 def preprocess(maze, start, end):
     visited = np.zeros(maze.shape, dtype=np.bool8)
     come_from = np.full((*maze.shape, 2), -1)
-    queue = [start]
+    queue = [start[0]]
     front = 0
 
     while front < len(queue):
         x, y = queue[front]
         front += 1
 
-        if (x, y) == end:
-            walkable = np.zeros(maze.shape, dtype=np.bool8)
-            while (x, y) != start:
-                walkable[x, y] = True
+        if (x, y) in end:
+            walkable = []
+            while not (x, y) in start:
+                walkable.append((x, y))
                 x, y = come_from[x, y]
-
-            walkable[x, y] = True
+            
+            walkable.append((x, y))
             return walkable
         
         for i, j in [(x - 1, y), (x, y - 1), (x + 1, y), (x, y + 1)]:
@@ -34,69 +65,61 @@ def preprocess(maze, start, end):
 
 
 @njit(cache=True)
-def pathfind(maze, start, end):
-    width, height = maze.shape
-    sqrt2 = np.sqrt(2)
+def pathfind(tunnel, shape):
+    width, height = shape
 
-    g = np.full((width + 1, height + 1), np.inf)
+    walkable = set(tunnel)
+
+    visited = np.zeros((width + 1, height + 1))
     come_from = np.full((width + 1, height + 1, 2), -1)
 
-    g[start] = 0
-    open = [(g[start], start)]
+    start_vertices = get_vertices(tunnel[0])
+    end_vertices = get_vertices(tunnel[-1])
 
-    hq.heapify(open)
+    queue = [i for i in start_vertices]
+    front = len(queue) - 1
 
-    while len(open) > 0:
-        _, (x, y) = hq.heappop(open)
+    while front < len(queue):
+        x, y = queue[front]
+        front += 1
 
-        if (x, y) == end:
+        if (x, y) in end_vertices:
             path = []
 
-            while (x, y) != start:
+            while not (x, y) in start_vertices:
                 path.append((x, y))
                 x, y = come_from[x, y]
-            path.append(start)
+
+            path.append((x, y))
 
             return path
 
         neighbors = []
-        if bound_check(maze, x, y) or bound_check(maze, x, y - 1):
-            neighbors.append((1, x + 1, y))
-        if bound_check(maze, x, y) or bound_check(maze, x - 1, y):
-            neighbors.append((1, x, y + 1))
-        if bound_check(maze, x - 1, y) or bound_check(maze, x - 1, y - 1):
-            neighbors.append((1, x - 1, y))
-        if bound_check(maze, x, y - 1) or bound_check(maze, x - 1, y - 1):
-            neighbors.append((1, x, y - 1))
+        if (x, y) in walkable or (x, y - 1) in walkable:
+            neighbors.append((x + 1, y))
+        if (x, y) in walkable or (x - 1, y) in walkable:
+            neighbors.append((x, y + 1))
+        if (x - 1, y) in walkable or (x - 1, y - 1) in walkable:
+            neighbors.append((x - 1, y))
+        if (x, y - 1) in walkable or (x - 1, y - 1) in walkable:
+            neighbors.append((x, y - 1))
         
-        if bound_check(maze, x, y):
-            neighbors.append((sqrt2, x + 1, y + 1))
-        if bound_check(maze, x, y - 1):
-            neighbors.append((sqrt2, x + 1, y - 1))
-        if bound_check(maze, x - 1, y):
-            neighbors.append((sqrt2, x - 1, y + 1))
-        if bound_check(maze, x - 1, y - 1):
-            neighbors.append((sqrt2, x - 1, y - 1))
+        if (x, y) in walkable:
+            neighbors.append((x + 1, y + 1))
+        if (x, y - 1) in walkable:
+            neighbors.append((x + 1, y - 1))
+        if (x - 1, y) in walkable:
+            neighbors.append((x - 1, y + 1))
+        if (x - 1, y - 1) in walkable:
+            neighbors.append((x - 1, y - 1))
 
-        for w, i, j in neighbors:
-            if g[i, j] > g[x, y] + w:
-                g[i, j] = g[x, y] + w
+        for i, j in neighbors:
+            if not bound_check(visited, i, j):
+                visited[i, j] = True
                 come_from[i, j] = [x, y]
-                hq.heappush(open, (g[i, j], (i, j)))
+                queue.append((i, j))
 
     assert False, "Maze isn't solvable"
-
-
-@njit(cache=True)
-def get_tiles(p):
-    x, y = p
-    tiles = set()
-    for i in (floor(x), ceil(x) - 1):
-        for j in (floor(y), ceil(y) - 1):
-            if (i, j) not in tiles:
-                tiles.add((i, j))
-
-    return tiles
 
 
 @njit(cache=True)
@@ -127,23 +150,14 @@ def visible(maze, p1, p2):
 
 @njit(cache=True)
 def solve_maze(maze, start, end):
-    start_tile, end_tile = (-1, -1), (-1, -1)
+    start_tiles = [(i, j) for i, j in get_tiles(start) if bound_check(maze, i, j)]
+    end_tiles = [(i, j) for i, j in get_tiles(end) if bound_check(maze, i, j)]
 
-    for i, j in get_tiles(start):
-        if bound_check(maze, i, j):
-            start_tile = (i, j)
-            break
+    assert len(start_tiles) > 0, "Start not in maze"
+    assert len(end_tiles) > 0, "End not in maze"
 
-    for i, j in get_tiles(end):
-        if bound_check(maze, i, j):
-            end_tile = (i, j)
-            break
-
-    assert start_tile != (-1, -1), "Start not in maze"
-    assert end_tile != (-1, -1), "End not in maze"
-
-    tunnel = preprocess(maze, start_tile, end_tile)
-    path = pathfind(tunnel, start, end)
+    tunnel = preprocess(maze, start_tiles, end_tiles)
+    path = pathfind(tunnel, maze.shape)
 
     stop = False
     while not stop:
@@ -151,11 +165,21 @@ def solve_maze(maze, start, end):
         tmp_path = []
 
         for p in path:
-            if len(tmp_path) > 1 and visible(tunnel, p, tmp_path[-2]):
+            if len(tmp_path) > 1 and visible(maze, p, tmp_path[-2]):
                 tmp_path[-1] = p
                 stop = False
             else:
                 tmp_path.append(p)
         path = tmp_path
 
-    return path
+    result_path = []
+    
+    for x, y in path:
+        if len(result_path) > 1 and colinear(result_path[-2], result_path[-1], (x, y)):
+            result_path[-1] = (float(x), float(y))
+        else:
+            result_path.append((float(x), float(y)))
+
+    result_path[0] = start
+    result_path[-1] = end
+    return result_path
