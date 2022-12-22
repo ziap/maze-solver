@@ -38,11 +38,35 @@ def colinear(a, b, c):
 
 
 @njit(cache=True)
+def visible(maze, p1, p2):
+    dx = p2[0] - p1[0]
+    dy = p2[1] - p1[1]
+
+    d = max(abs(dx), abs(dy))
+
+    if d == 1:
+        d = 2
+
+    dx, dy = dx / d, dy / d
+    x, y = p1[0] + dx, p1[1] + dy
+
+    for _ in range(1, d):
+        for i, j in get_tiles((x, y)):
+            if not bound_check(maze, i, j):
+                return False
+
+        x += dx
+        y += dy
+
+    return True
+
+
+@njit(cache=True)
 def preprocess(maze, start, end):
     visited = np.zeros(maze.shape, dtype=np.bool8)
     come_from = np.full((*maze.shape, 2), -1)
-    queue = [start[0]]
-    front = 0
+    queue = [i for i in start]
+    front = len(queue) - 1
 
     while front < len(queue):
         x, y = queue[front]
@@ -123,32 +147,6 @@ def pathfind(tunnel, shape):
 
 
 @njit(cache=True)
-def visible(maze, p1, p2):
-    dx = p2[0] - p1[0]
-    dy = p2[1] - p1[1]
-
-    d = max(abs(dx), abs(dy))
-
-    if d == 1:
-        d = 2
-
-    dx, dy = dx / d, dy / d
-    x, y = p1[0] + dx, p1[1] + dy
-
-    p2_f = (float(p2[0]), float(p2[1]))
-
-    while not np.allclose((x, y), p2_f, 1e-5, 1e-8, False):
-        for i, j in get_tiles((x, y)):
-            if not bound_check(maze, i, j):
-                return False
-
-        x += dx
-        y += dy
-
-    return True
-
-
-@njit(cache=True)
 def solve_maze(maze, start, end):
     start_tiles = [(i, j) for i, j in get_tiles(start) if bound_check(maze, i, j)]
     end_tiles = [(i, j) for i, j in get_tiles(end) if bound_check(maze, i, j)]
@@ -159,26 +157,20 @@ def solve_maze(maze, start, end):
     tunnel = preprocess(maze, start_tiles, end_tiles)
     path = pathfind(tunnel, maze.shape)
 
-    stop = False
-    while not stop:
-        stop = True
-        tmp_path = []
-
-        for p in path:
-            if len(tmp_path) > 1 and visible(maze, p, tmp_path[-2]):
-                tmp_path[-1] = p
-                stop = False
-            else:
-                tmp_path.append(p)
-        path = tmp_path
+    smooth_path = []
+    for p in path:
+        if len(smooth_path) > 1 and visible(maze, p, smooth_path[-2]):
+            smooth_path[-1] = p
+        else:
+            smooth_path.append(p)
 
     result_path = []
-    
-    for x, y in path:
+    for x, y in smooth_path:
+        p = (float(x), float(y))
         if len(result_path) > 1 and colinear(result_path[-2], result_path[-1], (x, y)):
-            result_path[-1] = (float(x), float(y))
+            result_path[-1] = p
         else:
-            result_path.append((float(x), float(y)))
+            result_path.append(p)
 
     result_path[0] = start
     result_path[-1] = end
