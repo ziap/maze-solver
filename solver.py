@@ -73,13 +73,16 @@ def preprocess(maze, start, end):
         front += 1
 
         if (x, y) in end:
-            walkable = []
+            end_tile = (x, y)
+
+            walkable = set()
             while not (x, y) in start:
-                walkable.append((x, y))
+                walkable.add((x, y))
                 x, y = come_from[x, y]
             
-            walkable.append((x, y))
-            return walkable
+            walkable.add((x, y))
+            start_tile = (x, y)
+            return walkable, start_tile, end_tile
         
         for i, j in [(x - 1, y), (x, y - 1), (x + 1, y), (x, y + 1)]:
             if bound_check(maze, i, j) and not bound_check(visited, i, j):
@@ -87,18 +90,18 @@ def preprocess(maze, start, end):
                 come_from[i, j] = [x, y]
                 queue.append((i, j))
 
+    assert False, "Maze isn't solvable"
+
 
 @njit(cache=True)
-def pathfind(tunnel, shape):
+def pathfind(walkable, start, end, shape):
     width, height = shape
-
-    walkable = set(tunnel)
 
     visited = np.zeros((width + 1, height + 1))
     come_from = np.full((width + 1, height + 1, 2), -1)
 
-    start_vertices = get_vertices(tunnel[0])
-    end_vertices = get_vertices(tunnel[-1])
+    start_vertices = get_vertices(start)
+    end_vertices = get_vertices(end)
 
     queue = [i for i in start_vertices]
     front = len(queue) - 1
@@ -154,8 +157,8 @@ def solve_maze(maze, start, end):
     assert len(start_tiles) > 0, "Start not in maze"
     assert len(end_tiles) > 0, "End not in maze"
 
-    tunnel = preprocess(maze, start_tiles, end_tiles)
-    path = pathfind(tunnel, maze.shape)
+    walkable, start_tile, end_tile = preprocess(maze, start_tiles, end_tiles)
+    path = pathfind(walkable, start_tile, end_tile, maze.shape)
 
     smooth_path = []
     for p in path:
@@ -172,6 +175,6 @@ def solve_maze(maze, start, end):
         else:
             result_path.append(p)
 
-    result_path[0] = start
-    result_path[-1] = end
+    result_path[0] = end
+    result_path[-1] = start
     return result_path
