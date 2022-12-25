@@ -1,5 +1,5 @@
+from math import sqrt
 from numba import njit
-import numpy as np
 
 EMPTY_POINT = (-1, -1)
 
@@ -23,7 +23,7 @@ def to_screen(p, size, offset, scale):
     x, y = p
     w, h = size
     off_x, off_y = offset
-    return (int(x * scale + w / 2 - off_x), int(y * scale + h / 2 - off_y))
+    return (round(x * scale + w / 2 - off_x), round(y * scale + h / 2 - off_y))
 
 
 @njit(cache=True)
@@ -34,4 +34,4 @@ def distance(p1, p2):
     dx = x2 - x1
     dy = y2 - y1
 
-    return np.sqrt(dx * dx + dy * dy)
+    return sqrt(dx * dx + dy * dy)

@@ -1,7 +1,7 @@
+import numpy as np
+
 from numba import njit
 from math import floor, ceil
-
-import numpy as np
 
 from util import bound_check, distance
 
