@@ -18,9 +18,7 @@ The goal is to find the [Euclidean distance optimal][2] path between any points 
 
 The maze is pre-processed with a tile-to-tile search to find which tiles are part of the resulting path. Otherwise, they are not considered during the main pathfinding. Because the grid is a non-weighted graph, a simple [Breadth-first-search][3] is sufficient and can be done in linear time.
 
-Once we have a list of tiles to navigate - which I'll call a "tunnel" - we need to find the most optimal way to move between them. One way of doing this is to build a [Visibility graph][4] and then search it. However, we can reduce the time by traversing the tunnel in 8 directions, corner-to-corner, creating a sub-optimal solution, then optimizing it during the post-processing step. [Dijkstra's algorithm][5] is chosen over [A\*][6] because the pre-processing step also guarantees no path leading away from the endpoint, thus rendering A\* useless.
-
-Finally, I used [path smoothing][7] to convert an 8-angle solution to an any-angle solution. In theory, it will also create the optimal solution because there's only one path for any pair of tiles. It's also reasonably fast because calculating line-of-sight on a tilemap can be done efficiently using the [DDA algorithm][8].
+Once we have a list of tiles to navigate - which I'll call a "tunnel" - we need to find the most optimal way to move between them. For this, we can use [Dynamic programming][4] to iteratively build a taut path between both ends of the tunnel. 
 
 ## Result
 
@@ -33,14 +31,14 @@ Finally, I used [path smoothing][7] to convert an 8-angle solution to an any-ang
 - Python (tested with 3.10)
 - NumPy
 - Numba
-- Matplotlib (for visualization, will be replaced with a tkinter UI)
+- PIL (pillow fork)
 
 ### Installation
 
 ```bash
 python -m venv .venv
 
-.venv/bin/pip install numpy numba matplotlib
+.venv/bin/pip install numpy numba pillow
 .venv/bin/python main.py
 ```
 
@@ -54,8 +52,4 @@ This project is licensed under the [MIT license](LICENSE).
 [1]: <https://weblog.jamisbuck.org/2011/1/27/mhze-generation-growing-tree-algorithm>
 [2]: <https://en.wikipedia.org/wiki/Any-angle_path_planning>
 [3]: <https://en.wikipedia.org/wiki/Breadth-first_search>
-[4]: <https://en.wikipedia.org/wiki/Visibility_graph>
-[5]: <https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm>
-[6]: <https://en.wikipedia.org/wiki/A*_search_algorithm>
-[7]: <https://theory.stanford.edu/~amitp/GameProgramming/MapRepresentations.html#path-smoothing>
-[8]: <https://en.wikipedia.org/wiki/Digital_differential_analyzer_(graphics_algorithm)>
+[4]: <https://en.wikipedia.org/wiki/Dynamic_programming>

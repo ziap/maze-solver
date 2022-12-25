@@ -1,24 +1,7 @@
-from generator import create_maze
-from util import trace_maze
-from solver import solve_maze
-
-from time import perf_counter
+from gui import App
 
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
-
-
-def display(maze, path):
-    x, y = trace_maze(maze)
-    px = [i[0] for i in path]
-    py = [i[1] for i in path]
-
-    plt.figure(figsize=(w / 4, h / 4))
-    plt.fill(x, y, facecolor='lightblue', edgecolor='blue', linewidth=1.25)
-    plt.plot(px, py, color='red', linewidth=2.0)
-    plt.savefig('result.png',bbox_inches='tight', pad_inches=0.1, transparent="True")
-
 
 def random_point(shape):
     norm = (np.random.normal(0.5, size=2) + 0.5) % 1
@@ -32,22 +15,4 @@ if __name__ == "__main__":
     w = int(ws[0]) if len(ws) else 40
     h = int(hs[0]) if len(hs) else w
 
-    t = perf_counter()
-    maze = create_maze(w, h, 0.25)
-
-    duration = (perf_counter() - t) * 1000
-    print(f"Maze created in: {duration}ms")
-
-    start = random_point(maze.shape)
-    end = random_point(maze.shape)
-
-    start = (0.5, 0.5)
-    end = (maze.shape[0] - 0.5), (maze.shape[1] - 0.5)
-    
-    t = perf_counter()
-    path = solve_maze(maze, start, end)
-
-    duration = (perf_counter() - t) * 1000
-    print(f"Maze solved in: {duration}ms")
-    
-    display(maze, path)
+    App(w, h).mainloop()
