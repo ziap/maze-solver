@@ -2,7 +2,6 @@ from numba import njit
 from math import floor, ceil
 
 import numpy as np
-import heapq as hq
 
 from util import bound_check, distance
 

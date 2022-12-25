@@ -2,7 +2,7 @@ from numba import njit, prange
 import numpy as np
 
 from math import floor
-from util import bound_check, from_screen
+from util import bound_check, from_screen, to_screen, EMPTY_POINT
 
 
 COLOR_FILL = np.array([191, 219, 254])
@@ -19,7 +19,7 @@ DOT_RADIUS = 3 / 20
 
 @njit(cache=True)
 def place_dot(buf, p1, p2, u, v, color):
-    if p2 == (-1, -1):
+    if p2 == EMPTY_POINT:
         return False
     x1, y1 = p1
     x2, y2 = p2
@@ -32,6 +32,39 @@ def place_dot(buf, p1, p2, u, v, color):
         return True
     
     return False
+
+
+@njit(cache=True)
+def place_color(buf, u, v, color):
+    w, h, _ = buf.shape
+    if u >= 0 and u < w and v >= 0 and v < h:
+        buf[u, v] = color
+
+
+@njit(cache=True)
+def draw_line(buf, p1, p2, width, color):
+    x1, y1 = p1
+    x2, y2 = p2
+
+    dx = x2 - x1
+    dy = y2 - y1
+    d = max(abs(dx), abs(dy))
+
+    if d == 0:
+        return
+
+    dx /= d
+    dy /= d
+    v, u = x1, y1
+    for _ in range(d + 1):
+        for i in range(-width, width + 1):
+            if abs(dx) > abs(dy):
+                place_color(buf, round(u + i), round(v), color)
+            else:
+                place_color(buf, round(u), round(v + i), color)
+
+        v += dx
+        u += dy
 
 
 @njit(cache=True, parallel=True)
@@ -49,8 +82,23 @@ def render(maze, size, offset, scale, start, end, path):
     else:
         line_color = COLOR_OUTLINE.astype(np.uint8)
 
-
     dot_radius_sqr = scale * scale * DOT_RADIUS * DOT_RADIUS
+
+    path_screen = [to_screen(p, size, offset, scale) for p in path]
+
+    for i in prange(1, len(path)):
+        p1 = path_screen[i - 1]
+        p2 = path_screen[i] 
+        draw_line(buf, p1, p2, line_width, COLOR_PATH)
+
+    start_screen = to_screen(start, size, offset, scale)
+    end_screen = to_screen(end, size, offset, scale)
+
+    if len(path) > 0:
+        draw_line(buf, start_screen, path_screen[0], line_width, COLOR_PATH)
+        draw_line(buf, path_screen[-1], end_screen, line_width, COLOR_PATH)
+    elif start != EMPTY_POINT and end != EMPTY_POINT:
+        draw_line(buf, start_screen, end_screen, line_width, COLOR_PATH)
 
     for i in prange(h):
         for j in range(w):
@@ -60,6 +108,9 @@ def render(maze, size, offset, scale, start, end, path):
                 continue
 
             if place_dot(buf, (x, y), end, i, j, COLOR_END):
+                continue
+
+            if buf[i, j, 0] > 0 or buf[i, j, 1] > 0 or buf[i, j, 2] > 0:
                 continue
 
             tile_x, tile_y = floor(x), floor(y)
