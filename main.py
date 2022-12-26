@@ -167,7 +167,7 @@ class App(tk.Tk):
             
         update_start = lambda x, y: self.display_start.set(f"Start: ({x:.2f}, {y:.2f})")
         update_end = lambda x, y: self.display_end.set(f"End: ({x:.2f}, {y:.2f})")
-        update_dist = lambda d: self.display_dist.set(f"Dist: {d:.2f}")
+        update_dist = lambda d: self.display_dist.set(f"Distance: {d:.2f}")
 
         self.renderer = Display(self, maze, update_start, update_end, update_dist)
         self.renderer.pack(fill=tk.BOTH, expand=tk.YES)

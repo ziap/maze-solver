@@ -20,7 +20,17 @@ The maze is pre-processed with a tile-to-tile search to find which tiles are par
 
 Once we have a list of tiles to navigate - which I'll call a "tunnel" - we need to find the most optimal way to move between them. For this, we can use [Dynamic programming][4] to iteratively build a taut path between both ends of the tunnel. 
 
-## Result
+## User interface
+
+The UI is built with the [tkinter][5] UI library.
+
+Controls:
+
+| Input  | Action          |
+| ------ | --------------- |
+| Click  | Place start/end |
+| Drag   | Pan             |
+| Scroll | Zoom            |
 
 ![](result.png)
 
@@ -33,7 +43,7 @@ Once we have a list of tiles to navigate - which I'll call a "tunnel" - we need 
 - Numba
 - PIL (pillow fork)
 
-### Installation
+### Quick start
 
 ```bash
 python -m venv .venv
@@ -42,7 +52,13 @@ python -m venv .venv
 .venv/bin/python main.py
 ```
 
-**Note:** Numba's first-time compilation can be slow (up to a few seconds). So make sure to warm up if you're going to benchmark this program.
+**Note:** Numba's first-time compilation is slow and can cause freezing. However, it is impossible to render everything in an acceptable framerate without it as we're using Python.
+
+## Improvements
+
+- Use maze generation algorithm on a Delaunay triangulation of a set of random points
+- Make algorithm work with tree of triangles (still use BFS + DP)
+- Switch to a statically typed, compiled programming language and OpenGL
 
 ## License
 
@@ -53,3 +69,4 @@ This project is licensed under the [MIT license](LICENSE).
 [2]: <https://en.wikipedia.org/wiki/Any-angle_path_planning>
 [3]: <https://en.wikipedia.org/wiki/Breadth-first_search>
 [4]: <https://en.wikipedia.org/wiki/Dynamic_programming>
+[5]: <https://docs.python.org/library/tkinter.html>
