@@ -31,6 +31,20 @@ to find the most optimal way to move between them. For this, we can use
 [Dynamic programming][4] to iteratively build a taut path between both ends of
 the tunnel. 
 
+## Benchmark
+
+- Processor: Intel® Core™ i5-8300H
+- Branching factor: 0.25 (use DFS 25% of the time)
+- Average of: 100 runs
+
+| Size      | Generation | Solving   |
+| --------- | ---------- | --------- |
+| 100x100   | 9.56 ms    | 2.06 ms   |
+| 500x500   | 318.77 ms  | 49.77 ms  |
+| 1000x1000 | 1.55 s     | 232.94 ms |
+| 1500x1500 | 3.91 s     | 607.24 ms |
+| 2000x2000 | 7.8 s      | 1.16 s    |
+
 ## User interface
 
 The UI is built with the [tkinter][5] UI library.
