@@ -6,19 +6,30 @@
 
 See [generator.py](generator.py).
 
-This program uses the [growing tree algorithm][1] for generating mazes. However, the algorithm keeps track of a list of edges instead of cells, similar to the randomized Prim's algorithm.
+This program uses the [growing tree algorithm][1] for generating mazes. However,
+the algorithm keeps track of a list of edges instead of cells, similar to the
+randomized Prim's algorithm.
 
-This creates a 2d NumPy array of boolean with the value of `True` representing walkable tiles.
+This creates a 2d NumPy array of boolean with the value of `True` representing
+walkable tiles.
 
 ### Solving mazes
 
 See [solver.py](solver.py).
 
-The goal is to find the [Euclidean distance optimal][2] path between any points in the maze. Because I had the luxury of working with mazes with one solution, I have done some clever optimizations to speed up the search drastically.
+The goal is to find the [Euclidean distance optimal][2] path between any points
+in the maze. Because I had the luxury of working with mazes with one solution,
+I have done some clever optimizations to speed up the search drastically.
 
-The maze is pre-processed with a tile-to-tile search to find which tiles are part of the resulting path. Otherwise, they are not considered during the main pathfinding. Because the grid is a non-weighted graph, a simple [Breadth-first-search][3] is sufficient and can be done in linear time.
+The maze is pre-processed with a tile-to-tile search to find which tiles are
+part of the resulting path. Otherwise, they are not considered during the main
+pathfinding. Because the grid is a non-weighted graph, a simple
+[Breadth-first-search][3] is sufficient and can be done in linear time.
 
-Once we have a list of tiles to navigate - which I'll call a "tunnel" - we need to find the most optimal way to move between them. For this, we can use [Dynamic programming][4] to iteratively build a taut path between both ends of the tunnel. 
+Once we have a list of tiles to navigate - which I'll call a "tunnel" - we need
+to find the most optimal way to move between them. For this, we can use
+[Dynamic programming][4] to iteratively build a taut path between both ends of
+the tunnel. 
 
 ## User interface
 
@@ -46,17 +57,27 @@ Controls:
 ### Quick start
 
 ```bash
+# Create virtual environment
 python -m venv .venv
+. .venv/bin/activate
 
-.venv/bin/pip install numpy numba pillow
-.venv/bin/python main.py
+# Install dependencies
+pip install numpy numba pillow
+
+# "Warm-up" numba JIT compiled functions
+python preview.py
+
+# Run the app
+python main.py
 ```
 
-**Note:** Numba's first-time compilation is slow and can cause freezing. However, it is impossible to render everything in an acceptable framerate without it as we're using Python.
+**Note:** Numba's first-time compilation is slow so do not run the app before
+warming it up. It is impossible to render everything in an acceptable framerate
+without it as we're using Python (unfortunately).
 
 ## Improvements
 
-- Use maze generation algorithm on a Delaunay triangulation of a set of random points
+- Use maze generation algorithm on a random Delaunay triangulation
 - Make algorithm work with tree of triangles (still use BFS + DP)
 - Switch to a statically typed, compiled programming language and OpenGL
 

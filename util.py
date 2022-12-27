@@ -1,7 +1,14 @@
-from math import sqrt
 from numba import njit
 
+import numpy as np
+
 EMPTY_POINT = (-1, -1)
+EMPTY_POINT_F = (-1., -1.)
+
+
+@njit(cache=True)
+def empty_path():
+    return np.empty((0, 2), dtype=np.uint32)
 
 
 @njit(cache=True)
@@ -34,4 +41,4 @@ def distance(p1, p2):
     dx = x2 - x1
     dy = y2 - y1
 
-    return sqrt(dx * dx + dy * dy)
+    return np.sqrt(dx * dx + dy * dy)

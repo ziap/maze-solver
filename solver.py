@@ -3,7 +3,7 @@ import numpy as np
 from numba import njit
 from math import floor, ceil
 
-from util import bound_check, distance
+from util import bound_check, distance, empty_path
 
 
 @njit(cache=True)
@@ -64,7 +64,7 @@ def preprocess(maze, start, end):
                 walkable.append((x, y))
 
             if len(walkable) <= 2:
-                return np.empty((0, 2), dtype=np.uint32)
+                return empty_path()
             
             return np.array(walkable[-2:0:-1], dtype=np.uint32)
             
@@ -81,7 +81,7 @@ def preprocess(maze, start, end):
 @njit(cache=True)
 def make_taut(seq, start, end):
     if seq.shape[0] == 0:
-        return distance(start, end), np.empty((0, 2), dtype=np.uint32)
+        return distance(start, end), empty_path()
     
     verts = [get_vertices(i) for i in seq]
     come_from = np.full((seq.shape[0], 4), -1)

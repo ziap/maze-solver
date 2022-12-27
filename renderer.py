@@ -2,7 +2,7 @@ from numba import njit, prange
 import numpy as np
 
 from math import floor
-from util import bound_check, from_screen, to_screen, EMPTY_POINT
+from util import bound_check, from_screen, to_screen, EMPTY_POINT_F
 
 
 COLOR_FILL = np.array([191, 219, 254])
@@ -19,7 +19,7 @@ DOT_RADIUS = 3 / 20
 
 @njit(cache=True)
 def place_dot(buf, p1, p2, u, v, color):
-    if p2 == EMPTY_POINT:
+    if p2 == EMPTY_POINT_F:
         return False
     x1, y1 = p1
     x2, y2 = p2
@@ -97,7 +97,7 @@ def render(maze, size, offset, scale, start, end, path):
     if len(path) > 0:
         draw_line(buf, start_screen, path_screen[0], line_width, COLOR_PATH)
         draw_line(buf, path_screen[-1], end_screen, line_width, COLOR_PATH)
-    elif start != EMPTY_POINT and end != EMPTY_POINT:
+    elif start != EMPTY_POINT_F and end != EMPTY_POINT_F:
         draw_line(buf, start_screen, end_screen, line_width, COLOR_PATH)
 
     for i in prange(h):

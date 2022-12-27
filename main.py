@@ -1,15 +1,15 @@
 import tkinter as tk
-import numpy as np
 import sys
 
 from tkinter import font
 from math import floor
 from PIL import Image, ImageTk
 
-from util import bound_check, from_screen, EMPTY_POINT
+from util import bound_check, from_screen, EMPTY_POINT_F, empty_path
 from renderer import render
 from generator import create_maze
 from solver import solve_maze
+
 
 class Display(tk.Label):
     INIT_TILE_SIZE = 10
@@ -25,9 +25,9 @@ class Display(tk.Label):
         self.display_dist = display_dist
         self.set_start = True
 
-        self.start_pos = EMPTY_POINT
-        self.end_pos = EMPTY_POINT
-        self.path = np.empty((0, 2))
+        self.start_pos = EMPTY_POINT_F
+        self.end_pos = EMPTY_POINT_F
+        self.path = empty_path()
 
         self.update_maze(maze)
         self.bind("<Configure>", self.resize)
@@ -60,10 +60,10 @@ class Display(tk.Label):
 
         self.tile_size = self.INIT_TILE_SIZE
         self.offset = (self.tile_size * maze_w / 2, self.tile_size * maze_h / 2)
-        self.start_pos = EMPTY_POINT
-        self.end_pos = EMPTY_POINT
+        self.start_pos = EMPTY_POINT_F
+        self.end_pos = EMPTY_POINT_F
         self.set_start = True
-        self.path = np.empty((0, 2))
+        self.path = empty_path()
         self.redraw()
 
 
@@ -99,7 +99,7 @@ class Display(tk.Label):
                     self.end_pos = (x, y)
                     self.display_end(x, y)
                 
-                if self.end_pos != EMPTY_POINT:
+                if self.end_pos != EMPTY_POINT_F:
                     dist, self.path = solve_maze(self.maze, self.start_pos, self.end_pos)
                     self.display_dist(dist)
                 self.set_start = not self.set_start
@@ -152,8 +152,8 @@ class App(tk.Tk):
         self.inp_width = tk.StringVar(value=maze_width)
         self.inp_height = tk.StringVar(value=maze_height)
 
-        self.start_pos = EMPTY_POINT
-        self.end_pos = EMPTY_POINT
+        self.start_pos = EMPTY_POINT_F
+        self.end_pos = EMPTY_POINT_F
 
         self.display_start = tk.StringVar(value="Start: (---, ---)")
         self.display_end = tk.StringVar(value="End: (---, ---)")
@@ -183,8 +183,8 @@ class App(tk.Tk):
         w = int(w_str)
         h = int(h_str)
 
-        self.start_pos = EMPTY_POINT
-        self.end_pos = EMPTY_POINT
+        self.start_pos = EMPTY_POINT_F
+        self.end_pos = EMPTY_POINT_F
         self.display_start.set("Start: (---, ---)")
         self.display_end.set("End: (---, ---)")
         self.display_dist.set("Distance: ---")
