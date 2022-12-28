@@ -12,7 +12,7 @@ if __name__ == "__main__":
     w = int(ws[0]) if len(ws) else 40
     h = int(hs[0]) if len(hs) else w
 
-    maze = create_maze(w, h, 0.25)
+    maze = create_maze(w, h, 0.1)
     tile_size = 3200 // max(maze.shape)
 
     offset = (tile_size * maze.shape[0] / 2, tile_size * maze.shape[1] / 2)

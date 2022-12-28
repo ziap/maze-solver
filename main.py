@@ -140,7 +140,7 @@ class App(tk.Tk):
     PADDING = 10
     FONT_SIZE = 10
 
-    MAZE_BRANCHING = 0.25
+    MAZE_BRANCHING = 0.1
 
 
     def __init__(self, maze_width, maze_height):
